@@ -8,9 +8,16 @@ url_submissions = "http://codeforces.com/api/user.status?handle={}&count={}"
 def getACsByUser(handle, cnt):
     while True:
         ans = requests.get('http://codeforces.com/api/user.status?handle={}&count={}'.format(handle, cnt)).json()
-        if ans['status'] == 'OK': break
+        if ans['status'] == 'OK': 
+            break
         time.sleep(0.3)
-    return [(str(submition['contestId']) + str(submition['problem']['index'])) for submition in ans['result'] if submition['verdict'] == 'OK']
+    try :
+        return [(str(submition['contestId']) + str(submition['problem']['index'])) for submition in ans['result'] if submition['verdict'] == 'OK']
+    except :
+        return []
+        
+
+
 
 print("Fetching problems...")
 prob_list = list(filter(lambda d : 'rating' in d, requests.get(url_problems).json()['result']['problems']))
@@ -30,7 +37,7 @@ ACed_problems = set()
 print("Fetching handles...")
 for handle in handle_list :
     print(handle)
-    ACed_problems.update(set(getACsByUser(handle, 400)))
+    ACed_problems.update(getACsByUser(handle, 400))
 
 
 
@@ -45,7 +52,7 @@ for prob in prob_list:
 for key in dificulties_dict :
     print("Na dificuldade %d tem %d problemas!" % (key, len(dificulties_dict[key])))
 
-print("Fetching problems not aced by any user...")
+print("Fetching problems not Aced by any user...")
 taken = set()
 for dif in dif_list :
     while(True):
@@ -54,9 +61,12 @@ for dif in dif_list :
             exit(0)
         ind = random.randint(0, len(dificulties_dict[dif]) - 1)
 
-        if dificulties_dict[dif][ind] not in taken and dificulties_dict[dif][ind] not in ACed_problems:
-            taken.add(dificulties_dict[dif][ind])
+        if (dif, dificulties_dict[dif][ind]) not in taken and dificulties_dict[dif][ind] not in ACed_problems:
+            taken.add((dif ,(dificulties_dict[dif][ind])))
             break
+
 print("Results!")
-for problem in taken :
-    print(problem)
+l = list(taken)
+l = sorted(l)
+for problem in l :
+    print("(%d,%s)" % (problem[0],problem[1]))
